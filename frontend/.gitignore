@@ -1,0 +1,29 @@
+# --- DEPENDÊNCIAS ---
+# Ignora as pastas pesadas que o npm baixa
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# --- SEGURANÇA (MUITO IMPORTANTE) ---
+# Ignora arquivos que guardam senhas e chaves do Banco de Dados
+.env
+backend/.env
+frontend/.env
+
+# --- BANCO DE DADOS ---
+# Ignora arquivos de banco local e logs do Prisma
+*.db
+*.db-journal
+backend/prisma/*.db
+backend/prisma/dev.db-journal
+
+# --- COMPILAÇÃO / BUILD ---
+# Ignora a pasta final que o React gera para o deploy
+dist/
+frontend/dist/
+
+# --- OUTROS ---
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+.vscode/
