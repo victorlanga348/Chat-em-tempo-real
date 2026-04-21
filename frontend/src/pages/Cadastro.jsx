@@ -13,17 +13,19 @@ function Cadastro() {
   const handleCadastro = async (e) => {
     e.preventDefault();
     try {
-      console.log(name,email,password);
+      if (!name.trim() || !email.trim() || !password.trim()) return toast.error('Preencha todos os campos!');
 
-      if (name == '' || email == '' || password == '') return toast.error('Preencha todos os campos!');
-      
-      await api.post('/auth/register', { name, email, password });
+      console.log("passou aqui no primeiro if")
+
+      const response = await api.post('/auth/register', { name, email, password });
+      console.log(response.data);
 
       toast.success("Cadastro realizado com sucesso!");
       navigate('/login');
     } catch (err) {
       console.error(err);
-      toast.error("Erro ao cadastrar!");
+      const errorMessage = err.response?.data?.error || "Erro ao cadastrar!";
+      toast.error(errorMessage);
     }
   };
 
@@ -34,20 +36,23 @@ function Cadastro() {
         <input 
           type="text" placeholder="Nome" 
           className="w-full p-2 mb-4 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-blue-500"
+          value={name}
           onChange={e => setName(e.target.value)}
         />
         <input 
           type="email" placeholder="E-mail" 
           className="w-full p-2 mb-4 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-blue-500"
+          value={email}
           onChange={e => setEmail(e.target.value)}
         />
         <input 
           type="password" placeholder="Senha" 
           className="w-full p-2 mb-6 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-blue-500"
+          value={password}
           onChange={e => setPassword(e.target.value)}
         />
-        <button className="w-full bg-blue-600 text-white p-2 rounded font-bold hover:bg-blue-700 transition">
-          Entrar
+        <button className="w-full bg-blue-600 text-white p-2 rounded font-bold hover:bg-blue-700 transition cursor-pointer active:scale-95 outline-none">
+          Cadastrar
         </button>
         <p className="text-gray-400 mt-6 text-center">Já tem uma conta? <Link to="/login" className="text-blue-400 hover:underline">Faça login!</Link></p>
       </form>

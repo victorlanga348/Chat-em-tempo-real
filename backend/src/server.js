@@ -3,6 +3,7 @@ import cors from 'cors';
 import http from 'http'; // Nativo do Node, serve para o Socket.io se apoiar
 import { Server } from 'socket.io'; // O motor do chat
 import dotenv from 'dotenv';
+import prisma from './services/db.js';
 
 // Importando suas rotas (MVC)
 import userRoutes from './routes/userRoutes.js';
@@ -27,22 +28,42 @@ const io = new Server(server, {
 // --- ÁREA DO EXPRESS (Rotas HTTP) ---
 app.use('/auth', userRoutes); // Seus logins e cadastros ficam aqui
 
-app.get('/', (req, res) => {
-    res.send("Servidor do DevChat rodando!");
-});
-
-
 // --- ÁREA DO SOCKET.IO (Tempo Real) ---
 // O evento 'connection' acontece quando o React "liga" para o servidor
 io.on('connection', (socket) => {
     console.log(`Usuário conectado: ${socket.id}`);
 
     // Quando alguém envia uma mensagem
-    socket.on('send_message', (data) => {
+    socket.on('send_message', async (data) => {
         console.log("Mensagem recebida:", data);
-        
-        // O servidor recebe a mensagem e "grita" para todos os outros
-        io.emit('receive_message', data);
+
+        try {
+            // Se o userId não chegar, a gente para por aqui
+            if (!data.userId) {
+                console.error("ERRO: O userId veio vazio do Frontend!");
+                return; 
+            }
+
+            // 1. Salva a mensagem no Banco de Dados
+            const novaMensagem = await prisma.message.create({
+                data: {
+                    text: data.text,
+                    userId: Number(data.userId)
+                },
+                include: {
+                    user: true
+                }
+            });
+            
+            // 2. Envia para todo mundo a mensagem completa
+            io.emit('receive_message', {
+                text: novaMensagem.text,
+                userName: novaMensagem.user.name,
+                createdAt: novaMensagem.createdAt
+            });
+        } catch (error) {
+            console.error("Erro ao salvar mensagem:", error);
+        }
     });
 
     socket.on('disconnect', () => {
