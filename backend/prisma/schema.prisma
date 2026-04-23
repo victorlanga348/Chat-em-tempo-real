@@ -14,19 +14,40 @@ datasource db {
 }
 
 model User {
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  password      String
+  online        Boolean        @default(false)
+  
+  // Relação: Mensagens que o usuário enviou
+  messages      Message[] 
+  
+  // Relação: Conversas das quais o usuário participa
+  conversations Conversation[] 
+}
+
+model Conversation {
   id        Int       @id @default(autoincrement())
-  name      String
-  email     String    @unique
-  password  String
-  messages  Message[] // Um usuário pode mandar várias mensagens
+  createdAt DateTime  @default(now())
+  
+  // Muitos usuários podem estar em muitas conversas (Many-to-Many)
+  users     User[]    
+  
+  // Uma conversa tem muitas mensagens
+  messages  Message[] 
 }
 
 model Message {
-  id        Int      @id @default(autoincrement())
-  text      String
-  createdAt DateTime @default(now())
+  id             Int          @id @default(autoincrement())
+  text           String
+  createdAt      DateTime     @default(now())
   
-  // Ligação com o usuário (Quem mandou a mensagem)
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  // Quem enviou a mensagem
+  userId         Int
+  user           User         @relation(fields: [userId], references: [id])
+
+  // A qual conversa essa mensagem pertence
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
 }

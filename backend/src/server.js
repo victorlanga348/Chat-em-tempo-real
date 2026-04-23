@@ -7,12 +7,16 @@ import prisma from './services/db.js';
 
 // Importando suas rotas (MVC)
 import userRoutes from './routes/userRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST"]
+}));
 
 // Criando o servidor HTTP que o Socket.io precisa
 const server = http.createServer(app);
@@ -27,20 +31,35 @@ const io = new Server(server, {
 
 // --- ÁREA DO EXPRESS (Rotas HTTP) ---
 app.use('/auth', userRoutes); // Seus logins e cadastros ficam aqui
+app.use('/chat', chatRoutes);
 
 // --- ÁREA DO SOCKET.IO (Tempo Real) ---
 // O evento 'connection' acontece quando o React "liga" para o servidor
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
     console.log(`Usuário conectado: ${socket.id}`);
+
+    const userId = socket.handshake.auth.userId;
+    if (userId) {
+        try {
+            await prisma.user.updateMany({
+                where: { id: Number(userId) },
+                data: { online: true }
+            });
+            io.emit('update_user_list');
+            console.log(`Usuário ${userId} está online`);
+        } catch (error) {
+            console.error("Erro ao atualizar status online:", error);
+        }
+    }
 
     // Quando alguém envia uma mensagem
     socket.on('send_message', async (data) => {
         console.log("Mensagem recebida:", data);
 
         try {
-            // Se o userId não chegar, a gente para por aqui
-            if (!data.userId) {
-                console.error("ERRO: O userId veio vazio do Frontend!");
+            // Se o userId ou conversationId não chegar, a gente para por aqui
+            if (!data.userId || !data.conversationId) {
+                console.error("ERRO: Dados incompletos do Frontend!", data);
                 return; 
             }
 
@@ -48,17 +67,22 @@ io.on('connection', (socket) => {
             const novaMensagem = await prisma.message.create({
                 data: {
                     text: data.text,
-                    userId: Number(data.userId)
+                    userId: Number(data.userId),
+                    conversationId: Number(data.conversationId)
                 },
                 include: {
                     user: true
                 }
             });
             
-            // 2. Envia para todo mundo a mensagem completa
+            console.log("Mensagem salva:", novaMensagem);
+
+            // 2. Envia para todo mundo (por enquanto, filtragem no frontend)
             io.emit('receive_message', {
                 text: novaMensagem.text,
                 userName: novaMensagem.user.name,
+                userId: novaMensagem.userId,
+                conversationId: novaMensagem.conversationId,
                 createdAt: novaMensagem.createdAt
             });
         } catch (error) {
@@ -66,8 +90,19 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('disconnect', () => {
-        console.log("Usuário desconectou");
+    socket.on('disconnect', async () => {
+        if (userId) {
+        try {
+            await prisma.user.updateMany({
+                where: { id: Number(userId) },
+                data: { online: false }
+            });
+            io.emit('update_user_list'); 
+            console.log(`Usuário ${userId} ficou offline`);
+        } catch (error) {
+            console.error("Erro ao atualizar status online:", error);
+        }
+    }
     });
 });
 
