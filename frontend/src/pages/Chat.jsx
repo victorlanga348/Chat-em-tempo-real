@@ -29,7 +29,8 @@ function Chat() {
       }
 
       try {
-        const res = await api.get("/auth/profile");
+        const res = await api.get("/chat/profile");
+        console.log("passa do get");
         setUser(res.data);
         setLoading(false);
       } catch (err) {
@@ -63,11 +64,13 @@ function Chat() {
     carregarMensagens();
   }, [currentConversation]);
 
+  //funcao para carregar os usuarios online
   const loadUsers = async () => {
     const res = await api.get('/chat/users');
     setUsuariosOnline(res.data);
   };
 
+  //funcao para carregar os usuarios online
   useEffect(() => {
     loadUsers();
 
@@ -79,6 +82,7 @@ function Chat() {
   }, []);
 
 
+  //funcao para receber as mensagens
   useEffect(() => {
     if (user) {
       // Adiciona o ID do usuário na autenticação do socket
@@ -87,7 +91,6 @@ function Chat() {
     }
   
     socket.on('receive_message', (data) => {
-      // Só adiciona na lista se a mensagem for da conversa atual
       setListaMensagens((prev) => {
         if (currentConversation && data.conversationId === currentConversation.id) {
           return [...prev, data];
@@ -125,6 +128,7 @@ function Chat() {
     }
   }
 
+  //funcao que vai carregar a pagina enquanto o usuario não está autenticado
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-900 text-white">
@@ -133,15 +137,12 @@ function Chat() {
     );
   }
 
-
-
   //funcao para pegar o id de alguem especifico e criar o id de uma conversa intima
   async function handleUserClick(outroUsuario) {
     try {
       setUserSelected(outroUsuario);
       console.log("Conversando com:", outroUsuario.name);
       
-      // Cria ou busca a conversa no backend
       const res = await api.post('/chat/create-conversation', { userId: outroUsuario.id, id: user.id });
 
       toast.success("Conversa criada com sucesso!");
@@ -206,6 +207,7 @@ function Chat() {
       >
         {sidebarAberta ? '✕' : '☰'}
       </button>
+
 
       {/* Conteúdo principal */}
 

@@ -1,13 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import http from 'http'; // Nativo do Node, serve para o Socket.io se apoiar
-import { Server } from 'socket.io'; // O motor do chat
+import http from 'http';
+import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import prisma from './services/db.js';
-
-// Importando suas rotas (MVC)
-import userRoutes from './routes/userRoutes.js';
-import chatRoutes from './routes/chatRoutes.js';
+import userRoutes from './routes/public/userRoutes.js';
+import chatRoutes from './routes/private/chatRoutes.js';
 
 dotenv.config();
 
@@ -24,13 +22,13 @@ const server = http.createServer(app);
 // Configurando o Socket.io
 const io = new Server(server, {
     cors: {
-        origin: "*", // Libera o chat para qualquer frontend por enquanto
+        origin: "*",
         methods: ["GET", "POST"]
     }
 });
 
 // --- ÁREA DO EXPRESS (Rotas HTTP) ---
-app.use('/auth', userRoutes); // Seus logins e cadastros ficam aqui
+app.use('/auth', userRoutes);
 app.use('/chat', chatRoutes);
 
 // --- ÁREA DO SOCKET.IO (Tempo Real) ---
@@ -57,13 +55,11 @@ io.on('connection', async (socket) => {
         console.log("Mensagem recebida:", data);
 
         try {
-            // Se o userId ou conversationId não chegar, a gente para por aqui
             if (!data.userId || !data.conversationId) {
                 console.error("ERRO: Dados incompletos do Frontend!", data);
                 return; 
             }
 
-            // 1. Salva a mensagem no Banco de Dados
             const novaMensagem = await prisma.message.create({
                 data: {
                     text: data.text,
@@ -77,7 +73,6 @@ io.on('connection', async (socket) => {
             
             console.log("Mensagem salva:", novaMensagem);
 
-            // 2. Envia para todo mundo (por enquanto, filtragem no frontend)
             io.emit('receive_message', {
                 text: novaMensagem.text,
                 userName: novaMensagem.user.name,
@@ -106,7 +101,6 @@ io.on('connection', async (socket) => {
     });
 });
 
-// ATENÇÃO: Agora usamos server.listen e não app.listen!
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🚀 Servidor HTTP e Socket rodando na porta ${PORT}`);

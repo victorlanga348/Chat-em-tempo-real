@@ -62,4 +62,4 @@ export const profile = async (req, res) => {
         console.error(e);
         res.status(500).json({ error: "Erro no servidor" });
     }
-}
+};

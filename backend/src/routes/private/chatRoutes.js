@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import prisma from '../services/db.js';
-import { authMiddleware } from '../middlewares/auth.js';
+import prisma from '../../services/db.js';
+import { authMiddleware } from '../../middlewares/auth.js';
+import { profile } from '../../controllers/userController.js';
 
 const router = Router();
 
@@ -39,7 +40,6 @@ router.post('/create-conversation', authMiddleware, async (req, res) => {
     try {
         const { userId } = req.body;
         const { id } = req.body;
-        console.log(id, userId);
         
         let conversation = await prisma.conversation.findFirst({
             where: {
@@ -66,5 +66,8 @@ router.post('/create-conversation', authMiddleware, async (req, res) => {
         res.status(500).json({ error: "Erro ao criar conversa" });
     }
 });
+
+
+router.get('/profile', authMiddleware, profile);
 
 export default router
