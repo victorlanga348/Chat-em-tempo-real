@@ -11,10 +11,7 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(cors({
-    origin: "*",
-    methods: ["GET", "POST"]
-}));
+app.use(cors({ origin: "*" }));
 
 // Criando o servidor HTTP que o Socket.io precisa
 const server = http.createServer(app);
