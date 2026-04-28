@@ -230,7 +230,7 @@ function Chat() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="flex gap-2 w-[90%] max-w-2xl">
+          <div className="flex gap-2 w-full">
             <input 
               className="flex-1 p-3 bg-gray-800 border border-gray-700 rounded-lg shadow-sm outline-none focus:ring-2 focus:ring-blue-500 text-white"
               value={mensagem}
