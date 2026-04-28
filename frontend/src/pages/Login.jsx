@@ -22,8 +22,6 @@ export default function Login() {
 
       localStorage.setItem('token', response.data.token);
 
-      toast.success("Login realizado com sucesso!")
-
       setEmail('')
       setPassword('')
 

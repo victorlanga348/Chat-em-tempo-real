@@ -30,7 +30,6 @@ function Chat() {
 
       try {
         const res = await api.get("/chat/profile");
-        console.log("passa do get");
         setUser(res.data);
         setLoading(false);
       } catch (err) {
@@ -141,11 +140,8 @@ function Chat() {
   async function handleUserClick(outroUsuario) {
     try {
       setUserSelected(outroUsuario);
-      console.log("Conversando com:", outroUsuario.name);
       
       const res = await api.post('/chat/create-conversation', { userId: outroUsuario.id, id: user.id });
-
-      toast.success("Conversa criada com sucesso!");
 
       setCurrentConversation(res.data);
     } catch (error) {
