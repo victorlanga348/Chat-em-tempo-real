@@ -1,7 +1,7 @@
 import axios from "axios"
 
 const api = axios.create({
-    baseURL: "http://localhost:3000" || "https://backend-do-chat.onrender.com"
+    baseURL: "https://backend-do-chat.onrender.com" || "http://localhost:3000"
 })
 
 //Este código abaixo anexa o token automaticamente em TODA requisição
