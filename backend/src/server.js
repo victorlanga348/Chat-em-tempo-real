@@ -65,6 +65,17 @@ io.on('connection', async (socket) => {
 
             // Usamos Number() para garantir a comparação correta independente do tipo enviado
             if(Number(data.conversationId) === 1){
+                //Verificar se o chat Geral existe, se não, cria.
+                const chatGeral = await prisma.conversation.findUnique({ where: { id: 1 } });
+                if (!chatGeral) {
+                    await prisma.conversation.create({
+                        data: {
+                            id: 1,
+                            name: "Geral"
+                        }
+                    });
+                }
+
                 const mensagemGeral = await prisma.message.create({
                     data: {
                         text: data.text,

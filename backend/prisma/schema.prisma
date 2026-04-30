@@ -30,6 +30,8 @@ model User {
 model Conversation {
   id        Int       @id @default(autoincrement())
   createdAt DateTime  @default(now())
+
+  name String?
   
   // Muitos usuários podem estar em muitas conversas (Many-to-Many)
   users     User[]    
@@ -50,11 +52,4 @@ model Message {
   // A qual conversa essa mensagem pertence
   conversationId Int
   conversation   Conversation @relation(fields: [conversationId], references: [id])
-}
-
-model GroupChat{
-    id            Int            @id @default(autoincrement())
-    name          String @default("Geral")
-    createdAt      DateTime        @default(now())
-    
 }

@@ -43,6 +43,7 @@ router.post('/create-conversation', authMiddleware, async (req, res) => {
         
         let conversation = await prisma.conversation.findFirst({
             where: {
+                id: { not: 1 }, // Impede que o chat Geral seja retornado como um chat privado
                 AND: [
                     { users: { some: { id: Number(id) } } },
                     { users: { some: { id: Number(userId) } } }
@@ -66,42 +67,6 @@ router.post('/create-conversation', authMiddleware, async (req, res) => {
         res.status(500).json({ error: "Erro ao criar conversa" });
     }
 });
-
-router.post('/create-group-chat', authMiddleware, async (req, res) => {
-    try {
-        const { name, id } = req.body;
-
-        const users = await prisma.user.findMany({
-            select: {
-                id: true,
-                name: true,
-            }
-        });
-        
-        let groupChat = await prisma.geralGroupChat.findFirst({
-            where: {
-                name: name
-            }
-        });
-        
-        if (!groupChat) {
-            groupChat = await prisma.geralGroupChat.create({
-                data: {
-                    name: name,
-                    user: {
-                        connect: { users }
-                    }
-                }
-            });
-        }
-        
-        res.json(groupChat);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Erro ao criar conversa" });
-    }
-});
-
 
 
 router.get('/profile', authMiddleware, profile);

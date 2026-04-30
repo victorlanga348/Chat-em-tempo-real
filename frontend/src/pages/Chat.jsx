@@ -9,8 +9,8 @@ function Chat() {
   const [listaMensagens, setListaMensagens] = useState([]);
   const [sidebarAberta, setSidebarAberta] = useState(false);
   const [usuariosOnline, setUsuariosOnline] = useState([]);
-  const [userSelected, setUserSelected] = useState({ id: 1, name: "Geral" });
-  const [currentConversation, setCurrentConversation] = useState({ id: 1, name: "Geral" });
+  const [userSelected, setUserSelected] = useState();
+  const [currentConversation, setCurrentConversation] = useState();
   
   // Ref para controlar o scroll automático
   const messagesEndRef = useRef(null);
@@ -47,6 +47,7 @@ function Chat() {
     async function carregarMensagens() {
       if (currentConversation) {
         try {
+          setListaMensagens([]); // Limpa as mensagens antigas instantaneamente
           const res = await api.get(`/chat/messages/${currentConversation.id}`);
           const formatadas = res.data.map(m => ({
             text: m.text,
@@ -66,7 +67,8 @@ function Chat() {
   //funcao para carregar os usuarios online
   const loadUsers = async () => {
     const res = await api.get('/chat/users');
-    setUsuariosOnline(res.data);
+    const usuarios = res.data.filter(u => u.id !== 1);
+    setUsuariosOnline(usuarios);
   };
 
   //funcao para carregar os usuarios online
@@ -164,10 +166,11 @@ function Chat() {
   //funcao para pegar o id de alguem especifico e criar o id de uma conversa intima
   async function handleUserClick(outroUsuario) {
     try {
-      setUserSelected(outroUsuario);
-      
+      // Cria a conversa no banco primeiro
       const res = await api.post('/chat/create-conversation', { userId: outroUsuario.id, id: user.id });
 
+      // Atualiza os estados visuais se deu tudo certo
+      setUserSelected(outroUsuario);
       setCurrentConversation(res.data);
     } catch (error) {
       toast.error("Erro ao criar conversa!");
@@ -199,11 +202,11 @@ function Chat() {
             🌍 Grupo Geral
         </button>
         {usuariosOnline
-        .filter(u => u.id !== user.id).
-        map(u => (
+        .filter(u => u.id !== user.id)
+        .map(u => (
           <div key={u.id} className="flex flex-col gap-2">
-            <div 
-              className={`flex items-center gap-2 hover:bg-blue-600 p-2 rounded-lg cursor-pointer transition active:scale-95 ${userSelected?.id === u.id ? 'bg-blue-600' : 'bg-transparent'}`} 
+            <div
+              className={`flex items-center gap-2 hover:bg-blue-600 p-2 rounded-lg cursor-pointer transition active:scale-95 ${userSelected?.id === u.id ? 'bg-blue-600' : 'bg-transparent'}`}
               onClick={() => handleUserClick(u)}
             >
               <div 
@@ -216,7 +219,6 @@ function Chat() {
               <hr className='border-gray-700' />
             </div>
           </div>
-          
         ))}
         <button
           onClick={() => { localStorage.removeItem('token'); navigate('/login'); }}
@@ -237,6 +239,13 @@ function Chat() {
 
 
       {/* Conteúdo principal */}
+
+      {!userSelected && (
+        <div className="flex flex-col items-center justify-center p-10 w-full h-screen">
+          <h1 className="text-3xl font-bold text-blue-400 text-center mb-5">Bem vindo ao Chat!</h1>
+          <p className="text-blue-400">Selecione um usuário para começar a conversar</p>
+        </div>
+      )}
       
       {/*Chat privado*/}
       {userSelected && (
