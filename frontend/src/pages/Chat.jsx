@@ -9,8 +9,8 @@ function Chat() {
   const [listaMensagens, setListaMensagens] = useState([]);
   const [sidebarAberta, setSidebarAberta] = useState(false);
   const [usuariosOnline, setUsuariosOnline] = useState([]);
-  const [userSelected, setUserSelected] = useState(null);
-  const [currentConversation, setCurrentConversation] = useState(null);
+  const [userSelected, setUserSelected] = useState({ id: 1, name: "Geral" });
+  const [currentConversation, setCurrentConversation] = useState({ id: 1, name: "Geral" });
   
   // Ref para controlar o scroll automático
   const messagesEndRef = useRef(null);
@@ -81,28 +81,53 @@ function Chat() {
   }, []);
 
 
-  //funcao para receber as mensagens
+  // useEffect para gerenciar a conexão Socket.io
   useEffect(() => {
     if (user) {
-      // Adiciona o ID do usuário na autenticação do socket
+      // Configura e conecta o socket apenas se necessário
       socket.auth = { userId: user.id }; 
-      socket.connect();
-    }
-  
-    socket.on('receive_message', (data) => {
-      setListaMensagens((prev) => {
-        if (currentConversation && data.conversationId === currentConversation.id) {
-          return [...prev, data];
-        }
-        return prev;
-      });
-    });
+      
+      if (!socket.connected) {
+        socket.connect();
+      }
 
+      const onConnect = () => socket.emit('join_group');
+      socket.on('connect', onConnect);
+      if (socket.connected) onConnect();
+
+      // Listener de mensagens recebidas
+      const handleReceiveMessage = (data) => {
+        setListaMensagens((prev) => {
+          if (data.conversationId == currentConversationRef.current?.id) {
+            return [...prev, data];
+          }
+          return prev;
+        });
+      };
+
+      socket.on('receive_message', handleReceiveMessage);
+
+      return () => {
+        socket.off('connect', onConnect);
+        socket.off('receive_message', handleReceiveMessage);
+      };
+    }
+  }, [user]);
+
+  // Efeito separado para desconectar apenas quando sair DEFINITIVAMENTE da página de Chat
+  useEffect(() => {
     return () => {
-      socket.off('receive_message');
-      socket.disconnect();
+      if (socket.connected) {
+        socket.disconnect();
+      }
     };
-  }, [user, currentConversation]);
+  }, []);
+
+  // Ref para sempre ter acesso ao valor atualizado da conversa dentro do listener do socket
+  const currentConversationRef = useRef(currentConversation);
+  useEffect(() => {
+    currentConversationRef.current = currentConversation;
+  }, [currentConversation]);
 
   // useEffect para rolar para o fundo sempre que a lista de mensagens mudar
   useEffect(() => {
@@ -111,7 +136,7 @@ function Chat() {
 
   const enviarMensagem = () => {
     try {
-      if (mensagem.trim() !== '' && user && currentConversation) {
+      if (mensagem.trim() !== '') {
         socket.emit('send_message', { 
           text: mensagem,
           userId: user.id,
@@ -167,6 +192,12 @@ function Chat() {
         className={`fixed top-0 left-0 h-full w-[260px] bg-[#1e2a3a] border-r border-gray-700 z-100 pt-20 px-5 pb-5 flex flex-col gap-3 transition-transform duration-300 ease-in-out ${sidebarAberta ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <h2 className='font-bold text-blue-600 mb-5 text-[18px]'>Usuários Online</h2>
+        <button 
+          onClick={() => {setCurrentConversation({ id: 1, name: "Grupo Geral" }); setUserSelected({ id: 1, name: "Grupo Geral" });}}
+          className={`flex items-center gap-2 hover:bg-blue-600 p-2 rounded-lg cursor-pointer transition active:scale-95 ${userSelected?.id === 1 ? 'bg-blue-600' : 'bg-transparent'}`} 
+        >
+            🌍 Grupo Geral
+        </button>
         {usuariosOnline
         .filter(u => u.id !== user.id).
         map(u => (
@@ -206,13 +237,6 @@ function Chat() {
 
 
       {/* Conteúdo principal */}
-
-      {!userSelected && (
-        <div className='w-full flex items-center justify-center h-screen flex-col'>
-          <h1 className='font-bold text-[50px] mb-5'>Hi!</h1>
-          <p className='text-gray-500'>Seja bem vindo ao nosso <span className='text-blue-600'>chat ao vivo</span></p>
-        </div>
-      )}
       
       {/*Chat privado*/}
       {userSelected && (

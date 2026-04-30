@@ -47,6 +47,12 @@ io.on('connection', async (socket) => {
         }
     }
 
+    //entrar na conversa geral
+    socket.on("join_group", () => {
+        socket.join('Geral');
+        console.log(`Usuário ${socket.id} entrou na sala Geral`);
+    });
+
     // Quando alguém envia uma mensagem
     socket.on('send_message', async (data) => {
         console.log("Mensagem recebida:", data);
@@ -57,7 +63,28 @@ io.on('connection', async (socket) => {
                 return; 
             }
 
-            const novaMensagem = await prisma.message.create({
+            // Usamos Number() para garantir a comparação correta independente do tipo enviado
+            if(Number(data.conversationId) === 1){
+                const mensagemGeral = await prisma.message.create({
+                    data: {
+                        text: data.text,
+                        userId: Number(data.userId),
+                        conversationId: 1
+                    },
+                    include: {
+                        user: true
+                    }
+                });
+                console.log("Mensagem Geral salva e emitindo:", mensagemGeral);
+                io.to('Geral').emit('receive_message', {
+                    text: mensagemGeral.text,
+                    userName: mensagemGeral.user.name,
+                    userId: mensagemGeral.userId,
+                    conversationId: 1,
+                    createdAt: mensagemGeral.createdAt
+                });
+            } else {
+                const novaMensagem = await prisma.message.create({
                 data: {
                     text: data.text,
                     userId: Number(data.userId),
@@ -66,19 +93,18 @@ io.on('connection', async (socket) => {
                 include: {
                     user: true
                 }
-            });
-            
-            console.log("Mensagem salva:", novaMensagem);
-
-            io.emit('receive_message', {
-                text: novaMensagem.text,
-                userName: novaMensagem.user.name,
-                userId: novaMensagem.userId,
-                conversationId: novaMensagem.conversationId,
-                createdAt: novaMensagem.createdAt
-            });
+                });
+                
+                io.emit('receive_message', {
+                    text: novaMensagem.text,
+                    userName: novaMensagem.user.name,
+                    userId: novaMensagem.userId,
+                    conversationId: novaMensagem.conversationId,
+                    createdAt: novaMensagem.createdAt
+                }); 
+            }
         } catch (error) {
-            console.error("Erro ao salvar mensagem:", error);
+            console.error("ERRO CRÍTICO NO SERVER:", error);
         }
     });
 

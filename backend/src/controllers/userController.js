@@ -15,6 +15,17 @@ export const register = async (req, res) => {
 
         const user = await prisma.user.create({ data: { name, email, password: hash } });
 
+        await prisma.conversation.upsert({
+            where: { id: 1 }, // Vamos reservar o ID 1 para o Geral
+            update: {
+                users: { connect: { id: user.id } } // Adiciona o novo usuário
+            },
+            create: {
+                id: 1,
+                users: { connect: { id: user.id } }
+            }
+        });
+
         res.status(201).json(user);
 
     } catch (e) {
