@@ -7,6 +7,8 @@ import Button from "../components/Button";
 import TextLink from "../components/TextLink";
 import Container from "../components/Container";
 import Form from "../components/Form";
+import { UserPlus } from 'lucide-react';
+
 
 function Cadastro() {
   const [name, setName] = useState('');
@@ -33,7 +35,13 @@ function Cadastro() {
   return (
     <Container>
       <Form onSubmit={handleCadastro}>
-        <h2 className="text-white text-2xl font-bold mb-6 text-center">DevChat Cadastro</h2>
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center mb-4 border border-indigo-500/30">
+            <UserPlus className="text-indigo-500" size={32} />
+          </div>
+          <h2 className="text-white text-3xl font-bold tracking-tight">Criar conta</h2>
+          <p className="text-slate-400 mt-1">Junte-se à comunidade <span className="gradient-text font-bold">DevChat</span></p>
+        </div>
         <Input 
           type="text" 
           placeholder="Nome" 
@@ -52,8 +60,8 @@ function Cadastro() {
           value={password}
           onChange={e => setPassword(e.target.value)}
         />
-        <Button type="submit">Cadastrar</Button>
-        <p className="text-gray-400 mt-6 text-center">Já tem uma conta? <TextLink to="/login">Faça login!</TextLink></p>
+        <Button type="submit">Criar minha conta</Button>
+        <p className="text-slate-400 mt-8 text-center text-sm">Já tem uma conta? <TextLink to="/login">Faça login!</TextLink></p>
       </Form>
     </Container>
  

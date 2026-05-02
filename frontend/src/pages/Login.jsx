@@ -7,6 +7,8 @@ import Button from '../components/Button';
 import TextLink from '../components/TextLink';
 import Container from '../components/Container';
 import Form from '../components/Form';
+import { MessageSquare } from 'lucide-react';
+
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -36,7 +38,13 @@ export default function Login() {
   return (
     <Container>
       <Form onSubmit={handleLogin}>
-        <h2 className="text-white text-2xl font-bold mb-6 text-center">DevChat Login</h2>
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mb-4 border border-blue-500/30">
+            <MessageSquare className="text-blue-500" size={32} />
+          </div>
+          <h2 className="text-white text-3xl font-bold tracking-tight">Bem-vindo</h2>
+          <p className="text-slate-400 mt-1">Entre no <span className="gradient-text font-bold">DevChat</span></p>
+        </div>
         <Input 
           type="email" 
           placeholder="E-mail" 
@@ -49,8 +57,8 @@ export default function Login() {
           value={password}
           onChange={e => setPassword(e.target.value)}
         />
-        <Button type="submit">Entrar</Button>
-        <p className="text-gray-400 mt-6 text-center">Não tem uma conta? <TextLink to="/register">Crie uma aqui!</TextLink></p>
+        <Button type="submit">Entrar na conta</Button>
+        <p className="text-slate-400 mt-8 text-center text-sm">Não tem uma conta? <TextLink to="/register">Crie uma aqui!</TextLink></p>
       </Form>
     </Container>
   );

@@ -1,6 +1,6 @@
 function Form(props) {
     return (
-        <form className="bg-gray-800 p-8 rounded-lg shadow-xl w-80" onSubmit={props.onSubmit} >
+        <form className="glass p-10 rounded-2xl w-full max-w-md flex flex-col gap-2" onSubmit={props.onSubmit} >
             {props.children}
         </form>
     );

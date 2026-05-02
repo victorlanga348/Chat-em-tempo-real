@@ -8,9 +8,9 @@ function Input({ type, ...props }) {
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
 
   return (
-    <div className="relative w-full mb-4">
+    <div className="relative w-full mb-2">
       <input
-        className="w-full p-2 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-blue-500 pr-10 transition-all"
+        className="w-full p-3 bg-slate-800/50 border border-slate-700/50 text-white rounded-xl outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 pr-10 transition-all placeholder:text-slate-500"
         type={inputType}
         {...props}
       />
@@ -18,7 +18,7 @@ function Input({ type, ...props }) {
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors cursor-pointer"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
           tabIndex="-1"
         >
           {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
